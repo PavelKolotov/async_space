@@ -145,4 +145,3 @@ cython_debug/
 .idea
 r.txt
 test.py
-main.py
