@@ -3,6 +3,8 @@ import curses
 import random
 import time
 
+from fire_animation import fire
+
 
 TIC_TIMEOUT = 0.1
 
@@ -27,12 +29,13 @@ async def blink(canvas, row, column, symbol='*'):
 
 def draw(canvas):
     curses.curs_set(0)
-    canvas.border('|', '|', '-', '-', '+', '+', '+', '+')
     y, x = canvas.getmaxyx()
     star_count = 100
     coroutines = []
     for _ in range(star_count):
         coroutines.append(blink(canvas, random.randint(1, y - 2), random.randint(1, x - 2), random.choice('+*.:')))
+    coroutine_shot = fire(canvas, y - 1, x/2)
+    coroutines.append(coroutine_shot)
 
     while True:
         for coroutine in coroutines:
@@ -44,6 +47,7 @@ def draw(canvas):
             break
         canvas.refresh()
         time.sleep(TIC_TIMEOUT)
+
 
 if __name__ == '__main__':
     curses.wrapper(draw)
