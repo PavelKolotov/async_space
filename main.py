@@ -4,6 +4,7 @@ import random
 import time
 
 from fire_animation import fire
+from rocket_animation import animate_spaceship
 
 
 TIC_TIMEOUT = 0.1
@@ -26,16 +27,27 @@ async def blink(canvas, row, column, symbol='*'):
         for x in range(3):
             await asyncio.sleep(0)
 
+def read_file(file_paths):
+    contents = []
+    for file_path in file_paths:
+        with open(file_path, 'r') as file:
+            contents.append(file.read())
+    return contents
+
 
 def draw(canvas):
     curses.curs_set(0)
     y, x = canvas.getmaxyx()
     star_count = 100
+    file_paths = ['animations/rocket_frame_1.txt', 'animations/rocket_frame_2.txt']
     coroutines = []
     for _ in range(star_count):
         coroutines.append(blink(canvas, random.randint(1, y - 2), random.randint(1, x - 2), random.choice('+*.:')))
-    coroutine_shot = fire(canvas, y - 1, x/2)
-    coroutines.append(coroutine_shot)
+    # coroutine_shot = fire(canvas, y - 1, x/2)
+    # coroutines.append(coroutine_shot)
+    frames = read_file(file_paths)
+    coroutine_spaceship = animate_spaceship(canvas, y - 1, x, frames)
+    coroutines.append(coroutine_spaceship)
 
     while True:
         for coroutine in coroutines:
@@ -50,4 +62,5 @@ def draw(canvas):
 
 
 if __name__ == '__main__':
+
     curses.wrapper(draw)
