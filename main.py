@@ -37,7 +37,10 @@ def read_file(file_paths):
 
 def draw(canvas):
     curses.curs_set(0)
+    canvas.nodelay(True)
     y, x = canvas.getmaxyx()
+    start_row = y // 2
+    start_column = x // 2
     star_count = 100
     file_paths = ['animations/rocket_frame_1.txt', 'animations/rocket_frame_2.txt']
     coroutines = []
@@ -46,7 +49,7 @@ def draw(canvas):
     # coroutine_shot = fire(canvas, y - 1, x/2)
     # coroutines.append(coroutine_shot)
     frames = read_file(file_paths)
-    coroutine_spaceship = animate_spaceship(canvas, y - 1, x, frames)
+    coroutine_spaceship = animate_spaceship(canvas, start_row - 1, start_column, frames)
     coroutines.append(coroutine_spaceship)
 
     while True:
