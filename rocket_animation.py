@@ -1,6 +1,7 @@
 import asyncio
 import itertools
 
+
 SPACE_KEY_CODE = 32
 LEFT_KEY_CODE = 260
 RIGHT_KEY_CODE = 261
@@ -80,9 +81,13 @@ def get_frame_size(text):
     return rows, columns
 
 
-async def animate_spaceship(canvas, start_row, start_column, frames):
+async def animate_spaceship(canvas, row, column, frames):
     cycle = itertools.cycle(frames)
     rows_direction, columns_direction = 0, 0
+    first_frame = frames[0]
+    rows_ships, columns_ships = get_frame_size(first_frame)
+    start_row = (row - rows_ships) // 2
+    start_column = (column - columns_ships) // 2
 
     while True:
         frame = next(cycle)
@@ -91,14 +96,14 @@ async def animate_spaceship(canvas, start_row, start_column, frames):
         start_row += rows_direction
         start_column += columns_direction
 
-        ship_y = start_row - round(rows_ships/2)
-        ship_x = start_column - round(columns_ships/2)
+        start_row = max(0, min(start_row, row - rows_ships))
+        start_column = max(0, min(start_column, column - columns_ships))
 
-        draw_frame(canvas, ship_y, ship_x, frame)
+        draw_frame(canvas, start_row, start_column, frame)
         canvas.refresh()
 
         for x in range(3):
             await asyncio.sleep(0)
 
-        draw_frame(canvas, ship_y, ship_x, frame, True)
+        draw_frame(canvas, start_row, start_column, frame, True)
         rows_direction, columns_direction, space_pressed = read_controls(canvas)
