@@ -9,23 +9,23 @@ from rocket_animation import animate_spaceship
 
 TIC_TIMEOUT = 0.1
 
+async def blink(canvas, row, column, offset_tics, symbol='*'):
 
-async def blink(canvas, row, column, symbol='*'):
     while True:
         canvas.addstr(row, column, symbol, curses.A_DIM)
-        for x in range(random.randint(5, 20)):
+        for _ in range(offset_tics):
             await asyncio.sleep(0)
 
         canvas.addstr(row, column, symbol)
-        for x in range(3):
+        for _ in range(3):
             await asyncio.sleep(0)
 
         canvas.addstr(row, column, symbol, curses.A_BOLD)
-        for x in range(5):
+        for _ in range(5):
             await asyncio.sleep(0)
 
         canvas.addstr(row, column, symbol)
-        for x in range(3):
+        for _ in range(3):
             await asyncio.sleep(0)
 
 
@@ -45,9 +45,10 @@ def draw(canvas):
     file_paths = ['animations/rocket_frame_1.txt', 'animations/rocket_frame_2.txt']
     coroutines = []
     for _ in range(star_count):
-        coroutines.append(blink(canvas, random.randint(1, row - 2), random.randint(1, column - 2), random.choice('+*.:')))
-    # coroutine_shot = fire(canvas, row - 1, column/2)
-    # coroutines.append(coroutine_shot)
+        offset_tics = random.randint(5, 20)
+        coroutines.append(blink(canvas, random.randint(1, row - 2), random.randint(1, column - 2), offset_tics, random.choice('+*.:')))
+    coroutine_shot = fire(canvas, row - 1, column/2)
+    coroutines.append(coroutine_shot)
     frames = read_file(file_paths)
     coroutine_spaceship = animate_spaceship(canvas, row - 1, column, frames)
     coroutines.append(coroutine_spaceship)
@@ -58,8 +59,7 @@ def draw(canvas):
                 coroutine.send(None)
             except StopIteration:
                 coroutines.remove(coroutine)
-        if len(coroutines) == 0:
-            break
+
         canvas.refresh()
         time.sleep(TIC_TIMEOUT)
 
