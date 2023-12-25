@@ -45,9 +45,12 @@ def draw(canvas):
     file_paths = ['animations/rocket_frame_1.txt', 'animations/rocket_frame_2.txt']
     coroutines = []
     for _ in range(star_count):
+        random_row = random.randint(1, row - 2)
+        random_column = random.randint(1, column - 2)
+        random_symbol = random.choice('+*.:')
         offset_tics = random.randint(5, 20)
-        coroutines.append(blink(canvas, random.randint(1, row - 2), random.randint(1, column - 2), offset_tics, random.choice('+*.:')))
-    coroutine_shot = fire(canvas, row - 1, column/2)
+        coroutines.append(blink(canvas, random_row, random_column, offset_tics, random_symbol))
+    coroutine_shot = fire(canvas, row - 1, column/2 - 1)
     coroutines.append(coroutine_shot)
     frames = read_file(file_paths)
     coroutine_spaceship = animate_spaceship(canvas, row - 1, column, frames)
