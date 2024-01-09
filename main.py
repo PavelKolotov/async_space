@@ -12,24 +12,26 @@ from curses_tools import get_frame_size
 TIC_TIMEOUT = 0.1
 
 
+async def sleep(tics=1):
+    for _ in range(tics):
+        await asyncio.sleep(0)
+
+
 async def blink(canvas, row, column, offset_tics, symbol='*'):
 
     while True:
         canvas.addstr(row, column, symbol, curses.A_DIM)
-        for _ in range(offset_tics):
-            await asyncio.sleep(0)
+        await sleep(offset_tics)
 
         canvas.addstr(row, column, symbol)
-        for _ in range(3):
-            await asyncio.sleep(0)
+        await sleep(3)
 
         canvas.addstr(row, column, symbol, curses.A_BOLD)
-        for _ in range(5):
-            await asyncio.sleep(0)
+        await sleep(5)
 
         canvas.addstr(row, column, symbol)
-        for _ in range(3):
-            await asyncio.sleep(0)
+        await sleep(3)
+
 
 
 async def fill_orbit_with_garbage(canvas, column, delay):
@@ -44,8 +46,7 @@ async def fill_orbit_with_garbage(canvas, column, delay):
         column_position = random.randint(0, column - columns_garbage)
         coroutine_garbage = fly_garbage(canvas, column_position, garbage_frame)
         coroutines.append(coroutine_garbage)
-        for _ in range(delay):
-            await asyncio.sleep(0)
+        await sleep(delay)
 
 
 def read_file(file_paths):
