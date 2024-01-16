@@ -5,10 +5,11 @@ import time
 import itertools
 
 
-from space_garbage import fly_garbage
 from curses_tools import get_frame_size, draw_frame, read_controls
 from fire_animation import fire
+from obstacles import show_obstacles
 from physics import update_speed
+from space_garbage import fly_garbage, obstacles
 
 
 TIC_TIMEOUT = 0.1
@@ -117,6 +118,9 @@ def draw(canvas):
 
     coroutine_garbage_generator = fill_orbit_with_garbage(canvas, column, delay_garbage)
     coroutines.append(coroutine_garbage_generator)
+
+    show_obstacles_garbage = show_obstacles(canvas, obstacles)
+    coroutines.append(show_obstacles_garbage)
 
     while True:
         for coroutine in coroutines:
