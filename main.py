@@ -152,8 +152,8 @@ def draw(canvas):
     coroutine_garbage_generator = fill_orbit_with_garbage(canvas, column, delay_garbage)
     coroutines.append(coroutine_garbage_generator)
 
-    show_obstacles_garbage = show_obstacles(canvas, obstacles)
-    coroutines.append(show_obstacles_garbage)
+    # show_obstacles_garbage = show_obstacles(canvas, obstacles)
+    # coroutines.append(show_obstacles_garbage)
 
     while True:
         for coroutine in coroutines:

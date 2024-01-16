@@ -1,6 +1,7 @@
 import asyncio
 
 from curses_tools import draw_frame, get_frame_size
+from explosion import explode
 from obstacles import Obstacle
 
 
@@ -27,6 +28,7 @@ async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
     try:
         while row < rows_number:
             if obstacle in obstacles_in_last_collisions:
+                await explode(canvas, obstacle.row + rows_garbage // 2, obstacle.column + columns_garbage // 2)
                 return
             draw_frame(canvas, row, column, garbage_frame)
             await asyncio.sleep(0)
