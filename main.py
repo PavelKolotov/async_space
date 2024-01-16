@@ -1,14 +1,14 @@
 import asyncio
 import curses
+import itertools
 import random
 import time
-import itertools
 
 
 from curses_tools import get_frame_size, draw_frame, read_controls
 from obstacles import show_obstacles
 from physics import update_speed
-from space_garbage import fly_garbage, obstacles
+from space_garbage import fly_garbage, obstacles, obstacles_in_last_collisions
 
 
 TIC_TIMEOUT = 0.1
@@ -112,6 +112,7 @@ async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0
     while 0 < row < max_row and 0 < column < max_column:
         for obstacle in obstacles:
             if obstacle.has_collision(round(row), round(column)):
+                obstacles_in_last_collisions.append(obstacle)
                 return
         canvas.addstr(round(row), round(column), symbol)
         await asyncio.sleep(0)
@@ -151,8 +152,8 @@ def draw(canvas):
     coroutine_garbage_generator = fill_orbit_with_garbage(canvas, column, delay_garbage)
     coroutines.append(coroutine_garbage_generator)
 
-    # show_obstacles_garbage = show_obstacles(canvas, obstacles)
-    # coroutines.append(show_obstacles_garbage)
+    show_obstacles_garbage = show_obstacles(canvas, obstacles)
+    coroutines.append(show_obstacles_garbage)
 
     while True:
         for coroutine in coroutines:
