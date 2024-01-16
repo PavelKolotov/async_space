@@ -6,7 +6,6 @@ import itertools
 
 
 from curses_tools import get_frame_size, draw_frame, read_controls
-from fire_animation import fire
 from obstacles import show_obstacles
 from physics import update_speed
 from space_garbage import fly_garbage, obstacles
@@ -88,6 +87,39 @@ async def animate_spaceship(canvas, row, column, frames):
             rows_direction, columns_direction, space_pressed = read_controls(canvas)
 
 
+async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0):
+    """Display animation of gun shot, direction and speed can be specified."""
+
+    row, column = start_row, start_column
+
+    canvas.addstr(round(row), round(column), '*')
+    await asyncio.sleep(0)
+
+    canvas.addstr(round(row), round(column), 'O')
+    await asyncio.sleep(0)
+    canvas.addstr(round(row), round(column), ' ')
+
+    row += rows_speed
+    column += columns_speed
+
+    symbol = '-' if columns_speed else '|'
+
+    rows, columns = canvas.getmaxyx()
+    max_row, max_column = rows - 1, columns - 1
+
+    curses.beep()
+
+    while 0 < row < max_row and 0 < column < max_column:
+        for obstacle in obstacles:
+            if obstacle.has_collision(round(row), round(column)):
+                return
+        canvas.addstr(round(row), round(column), symbol)
+        await asyncio.sleep(0)
+        canvas.addstr(round(row), round(column), ' ')
+        row += rows_speed
+        column += columns_speed
+
+
 def read_file(file_paths):
     contents = []
     for file_path in file_paths:
@@ -119,8 +151,8 @@ def draw(canvas):
     coroutine_garbage_generator = fill_orbit_with_garbage(canvas, column, delay_garbage)
     coroutines.append(coroutine_garbage_generator)
 
-    show_obstacles_garbage = show_obstacles(canvas, obstacles)
-    coroutines.append(show_obstacles_garbage)
+    # show_obstacles_garbage = show_obstacles(canvas, obstacles)
+    # coroutines.append(show_obstacles_garbage)
 
     while True:
         for coroutine in coroutines:
