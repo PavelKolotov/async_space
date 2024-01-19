@@ -12,7 +12,7 @@ from space_garbage import fly_garbage, obstacles, obstacles_in_last_collisions
 
 
 TIC_TIMEOUT = 0.1
-
+game_over_condition_met = False
 
 async def sleep(tics=1):
     for _ in range(tics):
@@ -51,6 +51,7 @@ async def fill_orbit_with_garbage(canvas, column, delay):
 
 
 async def animate_spaceship(canvas, row, column, frames):
+    global game_over_condition_met
     cycle = itertools.cycle(frames)
     rows_direction, columns_direction = 0, 0
     row_speed, column_speed = 0, 0
@@ -75,15 +76,19 @@ async def animate_spaceship(canvas, row, column, frames):
             start_row = max(0, min(start_row, row - rows_ships))
             start_column = max(0, min(start_column, column - columns_ships))
 
-            draw_frame(canvas, start_row, start_column, frame)
-
             if space_pressed:
                 coroutine_fire = fire(canvas, start_row, start_column + columns_ships // 2)
                 coroutines.append(coroutine_fire)
 
+            draw_frame(canvas, start_row, start_column, frame)
             await asyncio.sleep(0)
-
             draw_frame(canvas, start_row, start_column, frame, True)
+
+            for obstacle in obstacles:
+                if obstacle.has_collision(start_row, start_column + columns_ships // 2):
+                    game_over_condition_met = True
+                    return
+
             rows_direction, columns_direction, space_pressed = read_controls(canvas)
 
 
@@ -121,6 +126,23 @@ async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0
         column += columns_speed
 
 
+async def show_gameover(canvas, rows, columns):
+    gameover_file = ['animations/gameover_frame.txt', ]
+    frame = read_file(gameover_file)
+    gameover_frame = frame[0]
+    rows_gameover, columns_gameover = get_frame_size(gameover_frame)
+    column_position = columns // 2 - columns_gameover // 2
+    rows_position = rows // 2 - rows_gameover // 2
+    while True:
+        if game_over_condition_met:
+            draw_frame(canvas, rows_position, column_position, gameover_frame)
+            await asyncio.sleep(0)
+        else:
+            await asyncio.sleep(0)
+
+
+
+
 def read_file(file_paths):
     contents = []
     for file_path in file_paths:
@@ -152,8 +174,11 @@ def draw(canvas):
     coroutine_garbage_generator = fill_orbit_with_garbage(canvas, column, delay_garbage)
     coroutines.append(coroutine_garbage_generator)
 
-    # show_obstacles_garbage = show_obstacles(canvas, obstacles)
-    # coroutines.append(show_obstacles_garbage)
+    coroutine_gameover_generator = show_gameover(canvas, row, column)
+    coroutines.append(coroutine_gameover_generator)
+
+    show_obstacles_garbage = show_obstacles(canvas, obstacles)
+    coroutines.append(show_obstacles_garbage)
 
     while True:
         for coroutine in coroutines:
