@@ -3,7 +3,6 @@ import curses
 import itertools
 import random
 import time
-import threading
 
 
 from curses_tools import get_frame_size, draw_frame, read_controls
@@ -23,6 +22,13 @@ PHRASES = {
     2011: 'Messenger launch to Mercury',
     2020: "Take the plasma gun! Shoot the garbage!",
 }
+
+garbage_file_paths = ['animations/garbage/duck.txt',
+                      'animations/garbage/trash_large.txt',
+                      'animations/garbage/trash_small.txt',
+                      'animations/garbage/trash_xl.txt',
+                      'animations/garbage/lamp.txt',
+                      'animations/garbage/hubble.txt',]
 
 game_over_condition_met = False
 year = 1957
@@ -45,10 +51,10 @@ def get_garbage_delay_tics(year):
         return 2
 
 
-async def increment_year(tic):
+async def increment_year(tics):
     global year
     while True:
-        await sleep(tic)
+        await sleep(tics)
         year += 1
 
 
@@ -59,19 +65,23 @@ async def sleep(tics=1):
 
 async def show_year(canvas, rows, columns):
     phrase = ''
-    height, width, begin_y, begin_x = 2, 70, rows - 2, columns // 2
+    height, width, begin_y, begin_x = 2, columns // 2, rows - 2, columns // 2
     derwin_window = canvas.derwin(height, width, begin_y, begin_x)
     while True:
         if year in PHRASES:
             phrase = PHRASES[year]
         derwin_window.clear()
-        derwin_window.addstr(1, 1, f'Year {year}: {phrase}')
+
+        if len(f'Year {year}: {phrase}') > width - 2:
+            derwin_window.addstr(1, 1, f'Year {year}')
+        else:
+            derwin_window.addstr(1, 1, f'Year {year}: {phrase}')
+
         derwin_window.refresh()
         await asyncio.sleep(0)
 
 
 async def blink(canvas, row, column, offset_tics, symbol='*'):
-
     while True:
         canvas.addstr(row, column, symbol, curses.A_DIM)
         await sleep(offset_tics)
@@ -86,17 +96,13 @@ async def blink(canvas, row, column, offset_tics, symbol='*'):
         await sleep(3)
 
 
-async def fill_orbit_with_garbage(canvas, column):
+async def fill_orbit_with_garbage(canvas, column, paths):
     while True:
         delay = get_garbage_delay_tics(year)
         if delay is None:
             await asyncio.sleep(0)
         else:
-            garbage_files = ['animations/garbage/duck.txt',
-                             'animations/garbage/trash_large.txt',
-                             'animations/garbage/trash_small.txt',
-                             'animations/garbage/trash_xl.txt']
-            frames = read_file(garbage_files)
+            frames = read_file(paths)
             garbage_frame = random.choice(frames)
             _, columns_garbage = get_frame_size(garbage_frame)
             column_position = random.randint(0, column - columns_garbage)
@@ -223,20 +229,21 @@ def draw(canvas):
         coroutines.append(blink(canvas, random_row, random_column, offset_tics, random_symbol))
 
     frames = read_file(file_paths)
+
     coroutine_spaceship = animate_spaceship(canvas, row - 1, column, frames)
     coroutines.append(coroutine_spaceship)
 
-    coroutine_garbage_generator = fill_orbit_with_garbage(canvas, column)
+    coroutine_garbage_generator = fill_orbit_with_garbage(canvas, column, garbage_file_paths)
     coroutines.append(coroutine_garbage_generator)
 
     coroutine_gameover_generator = show_gameover(canvas, row, column)
     coroutines.append(coroutine_gameover_generator)
 
-    show_obstacles_garbage = show_obstacles(canvas, obstacles)
-    coroutines.append(show_obstacles_garbage)
-
     coroutine_show_year = show_year(canvas, row, column)
     coroutines.append(coroutine_show_year)
+
+    # show_obstacles_garbage = show_obstacles(canvas, obstacles)
+    # coroutines.append(show_obstacles_garbage)
 
     while True:
         for coroutine in coroutines:

@@ -2,6 +2,7 @@ import asyncio
 import curses
 from curses_tools import draw_frame, get_frame_size
 
+
 EXPLOSION_FRAMES = [
     """\
            (_)
@@ -27,6 +28,7 @@ EXPLOSION_FRAMES = [
             (
     """,
 ]
+
 
 async def explode(canvas, center_row, center_column):
     rows, columns = get_frame_size(EXPLOSION_FRAMES[0])
