@@ -1,38 +1,45 @@
 import asyncio
 import curses
 import itertools
+import os
 import random
 import time
 
 
 from curses_tools import get_frame_size, draw_frame, read_controls
-from obstacles import show_obstacles
 from physics import update_speed
 from space_garbage import fly_garbage, obstacles, obstacles_in_last_collisions
 
 
 TIC_TIMEOUT = 0.1
 PHRASES = {
-    1957: "First Sputnik",
-    1961: "Gagarin flew!",
-    1969: "Armstrong got on the moon!",
-    1971: "First orbital space station Salute-1",
-    1981: "Flight of the Shuttle Columbia",
+    1957: 'First Sputnik',
+    1961: 'Gagarin flew!',
+    1969: 'Armstrong got on the moon!',
+    1971: 'First orbital space station Salute-1',
+    1981: 'Flight of the Shuttle Columbia',
     1998: 'ISS start building',
     2011: 'Messenger launch to Mercury',
-    2020: "Take the plasma gun! Shoot the garbage!",
+    2020: 'Take the plasma gun! Shoot the garbage!',
 }
 
-garbage_file_paths = ['animations/garbage/duck.txt',
-                      'animations/garbage/trash_large.txt',
-                      'animations/garbage/trash_small.txt',
-                      'animations/garbage/trash_xl.txt',
-                      'animations/garbage/lamp.txt',
-                      'animations/garbage/hubble.txt',]
-
+garbage_file_path = 'animations/garbage'
 game_over_condition_met = False
 year = 1957
 
+
+def get_file_paths(directory_path):
+    file_paths = []
+    try:
+        files = os.listdir(directory_path)
+
+        for file in files:
+            file_path = os.path.join(directory_path, file)
+            file_paths.append(file_path)
+    except FileNotFoundError:
+        print(f'Файлы по указанному пути не найдены.')
+
+    return file_paths
 
 def get_garbage_delay_tics(year):
     if year < 1961:
@@ -96,7 +103,8 @@ async def blink(canvas, row, column, offset_tics, symbol='*'):
         await sleep(3)
 
 
-async def fill_orbit_with_garbage(canvas, column, paths):
+async def fill_orbit_with_garbage(canvas, column):
+    paths = get_file_paths(garbage_file_path)
     while True:
         delay = get_garbage_delay_tics(year)
         if delay is None:
@@ -233,7 +241,7 @@ def draw(canvas):
     coroutine_spaceship = animate_spaceship(canvas, row - 1, column, frames)
     coroutines.append(coroutine_spaceship)
 
-    coroutine_garbage_generator = fill_orbit_with_garbage(canvas, column, garbage_file_paths)
+    coroutine_garbage_generator = fill_orbit_with_garbage(canvas, column)
     coroutines.append(coroutine_garbage_generator)
 
     coroutine_gameover_generator = show_gameover(canvas, row, column)
@@ -241,9 +249,6 @@ def draw(canvas):
 
     coroutine_show_year = show_year(canvas, row, column)
     coroutines.append(coroutine_show_year)
-
-    # show_obstacles_garbage = show_obstacles(canvas, obstacles)
-    # coroutines.append(show_obstacles_garbage)
 
     while True:
         for coroutine in coroutines:
